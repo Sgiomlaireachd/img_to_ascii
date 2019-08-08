@@ -41,7 +41,3 @@ for i in range(n):
 
 with open('./result.txt', 'w') as file:
     file.write(result)
-
-cv2.imshow('img', binary_img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
