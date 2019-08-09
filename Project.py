@@ -1,43 +1,44 @@
 import cv2
+from Braille import braille
 
+magnitude = 7
+img = cv2.imread('./bart.jpg')
+height, width, clr = img.shape
+new_width = width // magnitude
+new_height = height // magnitude
 
-def image_resize(image, width=None, height=None, inter=cv2.INTER_AREA):
-    dim = None
-    (h, w) = image.shape[:2]
+if new_width % 2:
+    new_width += 1
+if new_height % 3:
+    new_height += 3 - new_height % 3
 
-    if width is None and height is None:
-        return image
+print(new_height, new_width)
 
-    if width is None:
-        r = height / float(h)
-        dim = (int(w * r), height)
+img = cv2.resize(img, (new_width, new_height))
 
-    else:
-        r = width / float(w)
-        dim = (width, int(h * r))
-
-    resized = cv2.resize(image, dim, interpolation=inter)
-    return resized
-
-
-dimensions = 50
-img = cv2.imread('./kappa.jpg')
-img = image_resize(img, height=dimensions)
 gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 binary_img = cv2.adaptiveThreshold(
     gray_img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+print(binary_img.shape)
 
-# binary_img = cv2.Canny(gray_img, 100, 200)
-n, m = binary_img.shape
-result = ''
-for i in range(n):
-    for j in range(m):
-        if binary_img[i][j] == 255:
-            result += '/'
-        if binary_img[i][j] == 0:
-            result += ' '
-    result += '\n'
+res = ''
+for i in range(0, new_height, 3):
+    for j in range(0, new_width, 2):
+        params = [
+            binary_img[i][j] == 255,
+            binary_img[i][j+1] == 255,
+            binary_img[i+1][j] == 255,
+            binary_img[i+1][j+1] == 255,
+            binary_img[i+2][j] == 255,
+            binary_img[i+2][j+1] == 255,
+        ]
+        res += braille(params)
+    res += '\n'
 
 with open('./result.txt', 'w') as file:
-    file.write(result)
+    file.write(res)
+
+cv2.imshow('a', binary_img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
